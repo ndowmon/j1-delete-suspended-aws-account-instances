@@ -1,0 +1,16 @@
+{
+  "name": "j1-delete-suspended-aws-account-instances",
+  "version": "1.0.0",
+  "description": "A manual process to delete all AWS instances in a JupiterOne account with Status='SUSPENDED'",
+  "main": "index.js",
+  "repository": "https://github.com/ndowmon/j1-delete-suspended-aws-account-instances",
+  "author": "Nick Dowmon <nick.dowmon@jupiterone.com>",
+  "license": "MIT",
+  "scripts": {
+    "j1-delete-suspended-aws-account-instances": "./tools/j1-delete-suspended-aws-account-instances"
+  },
+  "dependencies": {
+    "@jupiterone/jupiterone-client-nodejs": "^0.23.6",
+    "commander": "^8.3.0"
+  }
+}

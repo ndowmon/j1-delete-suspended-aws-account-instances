@@ -1,0 +1,51 @@
+#!/usr/bin/env node
+const { JupiterOneClient } = require('@jupiterone/jupiterone-client-nodejs');
+const { createCommand } = require('commander');
+
+const AWS_INTEGRATION_DEFINITION_ID = '7a669809-6e55-45b9-bf23-aa27613118e9';
+
+createCommand('j1-delete-suspended-aws-account-instances')
+  .description(`Programmatically delete all JupiterOne integration instances of AWS accounts that have 'Status: SUSPENDED'`)
+  .requiredOption(
+    '--j1-account-id <j1AccountId>',
+    'JupiterOne account id'
+  )
+  .requiredOption(
+    '--j1-api-key <j1ApiKey>',
+    'JupiterOne api key'
+  )
+  .option(
+    '--j1dev',
+    'Use JupiterOne dev environment'
+  )
+  .action(async ({ j1AccountId, j1ApiKey, j1dev }) => {
+    console.log('Initializing JupiterOne client with provided credentials...');
+    const j1Client = await new JupiterOneClient({ account: j1AccountId, accessToken: j1ApiKey, dev: j1dev }).init();
+    console.log('Successfully initialized JupiterOne client');
+
+    console.log('Fetching account IDs for suspended AWS accounts...');
+    const accountIdsForSuspendedAccounts = ['some-fake-account-id']; // TODO use AWS SDK to list deleted AWS accounts
+    console.log('Successfully fetched suspended account IDs: ' + accountIdsForSuspendedAccounts.join(', '));
+
+    let nextCursor;
+    let totalDeletedInstances = 0;
+    do {
+      const { instances, pageInfo } = await j1Client.integrationInstances.list({ definitionId: AWS_INTEGRATION_DEFINITION_ID });
+      console.log(`Fetched page of integration instances (page-size=${instances.length})`);
+      for (const instance of instances) {
+        if (accountIdsForSuspendedAccounts.includes(instance.config.accountId)) {
+          console.log(`Deleting suspended AWS integration instance (name=${instance.name}, id=${instance.id}, awsAccountId=${instance.config.accountId})`);
+          totalDeletedInstances += 1;
+          // await j1Client.integrationInstances.delete(instance.id);
+        }
+      }
+      nextCursor = pageInfo.endCursor;
+    } while (nextCursor);
+
+    console.log(`Finished deleting suspended AWS accounts with 'Status: SUSPENDED' (total-deleted-instances=${totalDeletedInstances})`)
+  })
+  .parseAsync(process.argv)
+  .catch(err => {
+    console.error(err);
+    process.exitCode = 1;
+  })
